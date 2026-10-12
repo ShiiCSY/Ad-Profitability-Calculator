@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f6f6">
+  <title>Your Unit Economics | Ad Spend Calculator</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      color-scheme: light;
+      --ink: #111214;
+      --muted: #727478;
+      --line: #dedfe1;
+      --paper: #fff;
+      --wash: #f5f5f5;
+      --blue: #0787f5;
+      --mono: 'DM Mono', 'Courier New', monospace;
+      --sans: 'DM Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: #fff;
+      color: var(--ink);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      width: min(1120px, calc(100% - 64px));
+      margin: 0 auto;
+      padding: 0 0 64px;
+    }
+
+    .eyebrow {
+      margin: 0 0 30px;
+      color: #77797c;
+      font: 500 14px/1.2 var(--mono);
+      letter-spacing: 3px;
+    }
+
+    .calculator {
+      overflow: hidden;
+      border: 1px solid #e5e5e5;
+      border-radius: 14px 14px 0 0;
+      background: var(--paper);
+      box-shadow: 0 1px 2px rgb(0 0 0 / 3%);
+    }
+
+    .calculator-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 49px;
+      padding: 0 20px;
+      background: #080808;
+      color: white;
+      font: 500 16px/1 var(--mono);
+      letter-spacing: 3px;
+    }
+
+    .heading-dot {
+      width: 11px;
+      height: 11px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: var(--blue);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 23px 28px;
+      padding: 24px 21px 25px;
+      background: var(--wash);
+    }
+
+    .control { min-width: 0; }
+
+    .control-label-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 34px;
+    }
+
+    .control label {
+      max-width: 75%;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .control output {
+      flex: 0 0 auto;
+      font: 500 24px/1 var(--mono);
+      white-space: nowrap;
+    }
+
+    input[type="range"] {
+      display: block;
+      width: 100%;
+      height: 24px;
+      margin: 4px 0 0;
+      appearance: none;
+      -webkit-appearance: none;
+      background: transparent;
+      cursor: pointer;
+      touch-action: pan-y;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 9px;
+      border-radius: 999px;
+      background: #dedfe1;
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 9px;
+      border-radius: 999px;
+      background: #dedfe1;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      width: 29px;
+      height: 29px;
+      margin-top: -10px;
+      appearance: none;
+      -webkit-appearance: none;
+      border: 4px solid white;
+      border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 0 1.5px var(--blue);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 21px;
+      height: 21px;
+      border: 4px solid white;
+      border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 0 1.5px var(--blue);
+    }
+
+    input[type="range"]:focus-visible {
+      outline: 2px solid var(--blue);
+      outline-offset: 5px;
+      border-radius: 6px;
+    }
+
+    .results {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: 28px;
+      padding: 22px 21px 26px;
+    }
+
+    .metric {
+      min-width: 0;
+      min-height: 158px;
+      padding: 14px 0 17px;
+      border-top: 2px solid var(--ink);
+    }
+
+    .metric:nth-child(n + 4) { border-top-color: var(--ink); }
+
+    .metric-title {
+      margin: 0 0 6px;
+      font: 500 17px/1.25 var(--mono);
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+    }
+
+    .metric-value {
+      margin: 0;
+      color: var(--blue);
+      font-size: clamp(38px, 5vw, 55px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .metric-formula {
+      margin: 8px 0 0;
+      color: #505155;
+      font: 400 17px/1.45 var(--mono);
+    }
+
+    .insight {
+      min-height: 100px;
+      padding-top: 14px;
+      border-top: 2px solid #e9e9e9;
+      font-size: 19px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .insight p { margin: 0; }
+    .insight strong { color: var(--blue); }
+
+    .revenue-section { margin-top: 54px; }
+
+    .revenue-section .eyebrow { margin-bottom: 22px; }
+
+    .revenue-controls {
+      margin-bottom: 22px;
+      border: 1px solid #e6e6e6;
+      border-radius: 10px;
+    }
+
+    .revenue-comparison {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+    }
+
+    .platform-card {
+      min-width: 0;
+      min-height: 390px;
+      padding: 30px 30px 26px;
+      border: 1px solid #dedfe1;
+      border-radius: 14px;
+      background: #fff;
+    }
+
+    .platform-card--reported { border: 2px solid #bdcaff; }
+
+    .platform-title {
+      margin: 0 0 27px;
+      color: #74767a;
+      font: 500 16px/1.3 var(--mono);
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+    }
+
+    .business-title { color: var(--ink); }
+
+    .platform-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 11px 0;
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    .platform-row output {
+      flex: 0 0 auto;
+      font: 500 23px/1.2 var(--mono);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .reported-stat {
+      margin-top: 32px;
+      padding-top: 25px;
+      border-top: 1px solid #e5e5e5;
+    }
+
+    .reported-stat-label,
+    .kept-label {
+      margin: 0;
+      color: #74767a;
+      font: 500 16px/1.3 var(--mono);
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+    }
+
+    .reported-roas {
+      margin: 3px 0 0;
+      font-size: clamp(55px, 7vw, 78px);
+      font-weight: 800;
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+
+    .reported-note,
+    .kept-note {
+      margin: 12px 0 0;
+      color: #53555a;
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .business-title { margin-bottom: 24px; }
+
+    .business-rows .platform-row {
+      min-height: 49px;
+      border-bottom: 1px solid #ededed;
+    }
+
+    .business-rows .platform-row:first-child { padding-top: 0; }
+
+    .business-rows .cost output { color: #c62828; }
+
+    .business-rows .ad-spend-row {
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .kept-result {
+      padding-top: 22px;
+    }
+
+    .kept-value {
+      margin: 1px 0 0;
+      font-size: clamp(48px, 6vw, 70px);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .revenue-comparison.is-loss .platform-card--business { border-color: #c62828; }
+    .revenue-comparison.is-loss .business-title,
+    .revenue-comparison.is-loss .kept-label,
+    .revenue-comparison.is-loss .kept-value { color: #c62828; }
+    .revenue-comparison.is-loss .business-rows .ad-spend-row { border-bottom-color: #c62828; }
+
+    @media (min-width: 700px) {
+      .results { grid-template-rows: auto auto; }
+      .insight { grid-column: 3; grid-row: 2; }
+    }
+
+    @media (max-width: 699px) {
+      .page { width: min(100% - 28px, 540px); padding-top: 4px; }
+      .eyebrow { margin-bottom: 20px; font-size: 12px; }
+      .calculator-heading { min-height: 46px; font-size: 13px; letter-spacing: 2.3px; }
+      .controls { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 18px; padding: 20px 16px 22px; }
+      .control label { font-size: 15px; }
+      .control output { font-size: 18px; }
+      .results { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; padding: 18px 16px 24px; }
+      .metric { min-height: 145px; }
+      .metric-title { font-size: 14px; letter-spacing: 1.7px; }
+      .metric-value { font-size: clamp(36px, 9vw, 48px); }
+      .metric-formula { font-size: 14px; }
+      .insight { grid-column: 1 / -1; min-height: auto; padding: 14px 0 8px; font-size: 17px; }
+      .revenue-section { margin-top: 40px; }
+      .revenue-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .revenue-comparison { grid-template-columns: 1fr; gap: 16px; }
+      .platform-card { min-height: 0; padding: 24px 20px; }
+      .platform-title { font-size: 14px; letter-spacing: 1.8px; }
+      .platform-row { font-size: 17px; }
+      .platform-row output { font-size: 20px; }
+      .reported-roas { font-size: 62px; }
+      .kept-value { font-size: 56px; }
+    }
+
+    @media (max-width: 390px) {
+      .controls { grid-template-columns: 1fr; gap: 13px; }
+      .revenue-controls { grid-template-columns: 1fr; }
+      .control-label-row { min-height: 27px; }
+      .results { column-gap: 14px; }
+      .metric-title { font-size: 12px; letter-spacing: 1.2px; }
+      .metric-value { font-size: 36px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <p class="eyebrow">01 · THE CALCULATOR</p>
+
+    <section class="calculator" aria-labelledby="calculator-title">
+      <header class="calculator-heading" id="calculator-title">
+        <span class="heading-dot" aria-hidden="true"></span>
+        <span>YOUR UNIT ECONOMICS</span>
+      </header>
+
+      <div class="controls" aria-label="Adjust your business assumptions">
+        <div class="control">
+          <div class="control-label-row">
+            <label for="aov">Average order value</label>
+            <output id="aov-display" for="aov">$90</output>
+          </div>
+          <input id="aov" type="range" min="10" max="500" step="1" value="90">
+        </div>
+
+        <div class="control">
+          <div class="control-label-row">
+            <label for="margin">Gross margin</label>
+            <output id="margin-display" for="margin">55%</output>
+          </div>
+          <input id="margin" type="range" min="5" max="95" step="1" value="55">
+        </div>
+
+        <div class="control">
+          <div class="control-label-row">
+            <label for="fulfillment">Fulfilment &amp; shipping</label>
+            <output id="fulfillment-display" for="fulfillment">$6.00</output>
+          </div>
+          <input id="fulfillment" type="range" min="0" max="100" step="0.25" value="6">
+        </div>
+
+        <div class="control">
+          <div class="control-label-row">
+            <label for="fees">Payment &amp; platform fees</label>
+            <output id="fees-display" for="fees">1.9%</output>
+          </div>
+          <input id="fees" type="range" min="0" max="15" step="0.1" value="1.9">
+        </div>
+
+        <div class="control">
+          <div class="control-label-row">
+            <label for="repeat">Repeat orders per customer</label>
+            <output id="repeat-display" for="repeat">1.1×</output>
+          </div>
+          <input id="repeat" type="range" min="1" max="10" step="0.1" value="1.1">
+        </div>
+
+        <div class="control">
+          <div class="control-label-row">
+            <label for="target-margin">Target net margin</label>
+            <output id="target-margin-display" for="target-margin">10%</output>
+          </div>
+          <input id="target-margin" type="range" min="0" max="50" step="1" value="10">
+        </div>
+      </div>
+
+      <div class="results" aria-live="polite">
+        <article class="metric">
+          <h2 class="metric-title">Contribution per order</h2>
+          <p class="metric-value" id="contribution">$41.79</p>
+          <p class="metric-formula">(AOV × margin) - fulfilment<br>- (AOV × fees)</p>
+        </article>
+
+        <article class="metric">
+          <h2 class="metric-title">Breakeven ROAS</h2>
+          <p class="metric-value" id="breakeven-roas">2.2×</p>
+          <p class="metric-formula">AOV ÷ contribution</p>
+        </article>
+
+        <article class="metric">
+          <h2 class="metric-title">Allowable CAC</h2>
+          <p class="metric-value" id="allowable-cac">$32.79</p>
+          <p class="metric-formula">contribution - (AOV ×<br>target net margin)</p>
+        </article>
+
+        <article class="metric">
+          <h2 class="metric-title">Target ROAS</h2>
+          <p class="metric-value" id="target-roas">2.7×</p>
+          <p class="metric-formula">AOV ÷ allowable CAC</p>
+        </article>
+
+        <article class="metric">
+          <h2 class="metric-title">Allowable CAC with repeat</h2>
+          <p class="metric-value" id="repeat-cac">$36.97</p>
+          <p class="metric-formula">(contribution × repeat<br>orders) - (AOV × target net<br>margin)</p>
+        </article>
+
+        <aside class="insight">
+          <p id="insight">Repeat orders are doing the work.<br>That is your real advantage.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="revenue-section" aria-labelledby="revenue-section-title">
+      <p class="eyebrow" id="revenue-section-title">02 · PLATFORM REVENUE VS MONEY KEPT</p>
+
+      <div class="controls revenue-controls" aria-label="Adjust monthly revenue and costs">
+        <div class="control">
+          <div class="control-label-row">
+            <label for="revenue">Monthly revenue</label>
+            <output id="revenue-display" for="revenue">$40,000</output>
+          </div>
+          <input id="revenue" type="range" min="5000" max="200000" step="1000" value="40000">
+        </div>
+        <div class="control">
+          <div class="control-label-row">
+            <label for="ad-spend">Monthly ad spend</label>
+            <output id="ad-spend-display" for="ad-spend">$10,000</output>
+          </div>
+          <input id="ad-spend" type="range" min="1000" max="50000" step="500" value="10000">
+        </div>
+        <div class="control">
+          <div class="control-label-row">
+            <label for="cogs">Cost of goods</label>
+            <output id="cogs-display" for="cogs">40%</output>
+          </div>
+          <input id="cogs" type="range" min="0" max="80" step="1" value="40">
+        </div>
+        <div class="control">
+          <div class="control-label-row">
+            <label for="monthly-fulfillment">Fulfilment</label>
+            <output id="monthly-fulfillment-display" for="monthly-fulfillment">10%</output>
+          </div>
+          <input id="monthly-fulfillment" type="range" min="0" max="30" step="0.5" value="10">
+        </div>
+        <div class="control">
+          <div class="control-label-row">
+            <label for="revenue-fees">Fees</label>
+            <output id="revenue-fees-display" for="revenue-fees">3%</output>
+          </div>
+          <input id="revenue-fees" type="range" min="0" max="15" step="0.5" value="3">
+        </div>
+      </div>
+
+      <div class="revenue-comparison" id="revenue-comparison" aria-live="polite">
+        <article class="platform-card platform-card--reported">
+          <h2 class="platform-title">What Google reports</h2>
+          <div class="platform-row">
+            <span>Revenue</span>
+            <output id="reported-revenue">$40,000</output>
+          </div>
+          <div class="platform-row">
+            <span>Spend</span>
+            <output id="reported-spend">$10,000</output>
+          </div>
+          <div class="reported-stat">
+            <p class="reported-stat-label">ROAS</p>
+            <p class="reported-roas" id="reported-roas">4.0×</p>
+            <p class="reported-note" id="reported-note"></p>
+          </div>
+        </article>
+
+        <article class="platform-card platform-card--business">
+          <h2 class="platform-title business-title">What the business keeps</h2>
+          <div class="business-rows">
+            <div class="platform-row">
+              <span>Revenue</span>
+              <output id="kept-revenue">$40,000</output>
+            </div>
+            <div class="platform-row cost">
+              <span>Cost of goods</span>
+              <output id="kept-cogs">-$16,000</output>
+            </div>
+            <div class="platform-row cost">
+              <span>Fulfilment</span>
+              <output id="kept-fulfillment">-$4,000</output>
+            </div>
+            <div class="platform-row cost">
+              <span>Fees</span>
+              <output id="kept-fees">-$1,200</output>
+            </div>
+            <div class="platform-row cost ad-spend-row">
+              <span>Ad spend</span>
+              <output id="kept-spend">-$10,000</output>
+            </div>
+          </div>
+          <div class="kept-result">
+            <p class="kept-label" id="kept-label">Kept</p>
+            <p class="kept-value" id="kept-value">$8,800</p>
+            <p class="kept-note" id="kept-note"></p>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const fields = {
+      aov: document.querySelector('#aov'),
+      margin: document.querySelector('#margin'),
+      fulfillment: document.querySelector('#fulfillment'),
+      fees: document.querySelector('#fees'),
+      repeat: document.querySelector('#repeat'),
+      targetMargin: document.querySelector('#target-margin')
+    };
+
+    const formatMoney = (value) => `$${value.toFixed(2)}`;
+
+    function updateCalculator() {
+      const aov = Number(fields.aov.value);
+      const margin = Number(fields.margin.value) / 100;
+      const fulfillment = Number(fields.fulfillment.value);
+      const fees = Number(fields.fees.value) / 100;
+      const repeat = Number(fields.repeat.value);
+      const targetMargin = Number(fields.targetMargin.value) / 100;
+
+      const contribution = aov * margin - fulfillment - aov * fees;
+      const allowableCac = contribution - aov * targetMargin;
+      const repeatCac = contribution * repeat - aov * targetMargin;
+      const breakevenRoas = contribution > 0 ? aov / contribution : Infinity;
+      const targetRoas = allowableCac > 0 ? aov / allowableCac : Infinity;
+
+      document.querySelector('#aov-display').textContent = `$${aov.toFixed(0)}`;
+      document.querySelector('#margin-display').textContent = `${(margin * 100).toFixed(0)}%`;
+      document.querySelector('#fulfillment-display').textContent = formatMoney(fulfillment);
+      document.querySelector('#fees-display').textContent = `${(fees * 100).toFixed(1)}%`;
+      document.querySelector('#repeat-display').textContent = `${repeat.toFixed(1)}×`;
+      document.querySelector('#target-margin-display').textContent = `${(targetMargin * 100).toFixed(0)}%`;
+
+      document.querySelector('#contribution').textContent = formatMoney(contribution);
+      document.querySelector('#breakeven-roas').textContent = Number.isFinite(breakevenRoas) ? `${breakevenRoas.toFixed(1)}×` : '∞';
+      document.querySelector('#allowable-cac').textContent = formatMoney(allowableCac);
+      document.querySelector('#target-roas').textContent = Number.isFinite(targetRoas) ? `${targetRoas.toFixed(1)}×` : '∞';
+      document.querySelector('#repeat-cac').textContent = formatMoney(repeatCac);
+
+      const insight = document.querySelector('#insight');
+      insight.innerHTML = repeat > 1
+        ? `Repeat orders are doing the work.<br>That is your real advantage.`
+        : `Every customer is a one-time order.<br>Repeat purchases can raise your CAC.`;
+    }
+
+    Object.values(fields).forEach((field) => field.addEventListener('input', updateCalculator));
+    updateCalculator();
+
+    const revenueFields = {
+      revenue: document.querySelector('#revenue'),
+      adSpend: document.querySelector('#ad-spend'),
+      cogs: document.querySelector('#cogs'),
+      fulfillment: document.querySelector('#monthly-fulfillment'),
+      fees: document.querySelector('#revenue-fees')
+    };
+
+    const formatWholeMoney = (value) => `$${Math.round(value).toLocaleString('en-US')}`;
+
+    function updateRevenueComparison() {
+      const revenue = Number(revenueFields.revenue.value);
+      const adSpend = Number(revenueFields.adSpend.value);
+      const cogsRate = Number(revenueFields.cogs.value) / 100;
+      const fulfillmentRate = Number(revenueFields.fulfillment.value) / 100;
+      const feesRate = Number(revenueFields.fees.value) / 100;
+      const cogs = revenue * cogsRate;
+      const fulfillment = revenue * fulfillmentRate;
+      const fees = revenue * feesRate;
+      const kept = revenue - cogs - fulfillment - fees - adSpend;
+      const contributionBeforeAds = revenue - cogs - fulfillment - fees;
+      const roas = revenue / adSpend;
+      const breakevenRoas = contributionBeforeAds > 0 ? revenue / contributionBeforeAds : Infinity;
+
+      document.querySelector('#revenue-display').textContent = formatWholeMoney(revenue);
+      document.querySelector('#ad-spend-display').textContent = formatWholeMoney(adSpend);
+      document.querySelector('#cogs-display').textContent = `${(cogsRate * 100).toFixed(0)}%`;
+      document.querySelector('#monthly-fulfillment-display').textContent = `${(fulfillmentRate * 100).toFixed(1).replace(/\.0$/, '')}%`;
+      document.querySelector('#revenue-fees-display').textContent = `${(feesRate * 100).toFixed(1).replace(/\.0$/, '')}%`;
+
+      document.querySelector('#reported-revenue').textContent = formatWholeMoney(revenue);
+      document.querySelector('#reported-spend').textContent = formatWholeMoney(adSpend);
+      document.querySelector('#reported-roas').textContent = `${roas.toFixed(1)}×`;
+      document.querySelector('#kept-revenue').textContent = formatWholeMoney(revenue);
+      document.querySelector('#kept-cogs').textContent = `-${formatWholeMoney(cogs)}`;
+      document.querySelector('#kept-fulfillment').textContent = `-${formatWholeMoney(fulfillment)}`;
+      document.querySelector('#kept-fees').textContent = `-${formatWholeMoney(fees)}`;
+      document.querySelector('#kept-spend').textContent = `-${formatWholeMoney(adSpend)}`;
+      document.querySelector('#kept-label').textContent = kept >= 0 ? 'Kept' : 'Lost';
+      document.querySelector('#kept-value').textContent = `${kept < 0 ? '-' : ''}${formatWholeMoney(Math.abs(kept))}`;
+
+      const comparison = document.querySelector('#revenue-comparison');
+      comparison.classList.toggle('is-loss', kept < 0);
+      document.querySelector('#reported-note').textContent = kept >= 0
+        ? 'Still above breakeven.'
+        : 'ROAS alone does not tell the whole story.';
+      document.querySelector('#kept-note').textContent = Number.isFinite(breakevenRoas)
+        ? `Breakeven here is ${breakevenRoas.toFixed(1)}×. They hit ${roas.toFixed(1)}×.`
+        : 'The business has no positive margin before ad spend.';
+    }
+
+    Object.values(revenueFields).forEach((field) => field.addEventListener('input', updateRevenueComparison));
+    updateRevenueComparison();
+  </script>
+</body>
+</html>
